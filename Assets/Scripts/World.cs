@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class World : MonoBehaviour {
 
-    public int seed;
-    public BiomeAttributes biome;
-
     public Transform player;
     public Vector3 spawnPosition;
 
@@ -21,20 +18,17 @@ public class World : MonoBehaviour {
 
     private void Start() {
 
-        Random.InitState(seed);
-
-        spawnPosition = new Vector3((VoxelData.WorldSizeInChunks * VoxelData.ChunkWidth) / 2f, VoxelData.ChunkHeight + 2f, (VoxelData.WorldSizeInChunks * VoxelData.ChunkWidth) / 2f);
+        spawnPosition = new Vector3((VoxelData.WorldSizeInChunks * VoxelData.ChunkWidth) / 2f, VoxelData.ChunkHeight + 2, (VoxelData.WorldSizeInChunks * VoxelData.ChunkWidth) / 2f);
         GenerateWorld();
         playerLastChunkCoord = GetChunkCoordFromVector3(player.position);
-        
+
 
     }
-
+    
     private void Update() {
 
         playerChunkCoord = GetChunkCoordFromVector3(player.position);
 
-        // Only update the chunks if the player has moved from the chunk they were previously on.
         if (!playerChunkCoord.Equals(playerLastChunkCoord))
             CheckViewDistance();
 
@@ -69,14 +63,11 @@ public class World : MonoBehaviour {
 
         List<ChunkCoord> previouslyActiveChunks = new List<ChunkCoord>(activeChunks);
 
-        // Loop through all chunks currently within view distance of the player.
         for (int x = coord.x - VoxelData.ViewDistanceInChunks; x < coord.x + VoxelData.ViewDistanceInChunks; x++) {
             for (int z = coord.z - VoxelData.ViewDistanceInChunks; z < coord.z + VoxelData.ViewDistanceInChunks; z++) {
 
-                // If the current chunk is in the world...
                 if (IsChunkInWorld (new ChunkCoord (x, z))) {
 
-                    // Check if it active, if not, activate it.
                     if (chunks[x, z] == null)
                         CreateNewChunk(x, z);
                     else if (!chunks[x, z].isActive) {
@@ -86,18 +77,16 @@ public class World : MonoBehaviour {
 
                 }
 
-                // Check through previously active chunks to see if this chunk is there. If it is, remove it from the list.
                 for (int i = 0; i < previouslyActiveChunks.Count; i++) {
 
-                    if (previouslyActiveChunks[i].Equals(new ChunkCoord(x, z)))
+                    if (previouslyActiveChunks[i].Equals (new ChunkCoord(x, z)))
                         previouslyActiveChunks.RemoveAt(i);
-                       
+
                 }
 
             }
         }
 
-        // Any chunks left in the previousActiveChunks list are no longer in the player's view distance, so loop through and disable them.
         foreach (ChunkCoord c in previouslyActiveChunks)
             chunks[c.x, c.z].isActive = false;
 
@@ -105,54 +94,20 @@ public class World : MonoBehaviour {
 
     public byte GetVoxel (Vector3 pos) {
 
-        int yPos = Mathf.FloorToInt(pos.y);
-
-        /* IMMUTABLE PASS */
-
-        // If outside world, return air.
         if (!IsVoxelInWorld(pos))
             return 0;
-
-        // If bottom block of chunk, return bedrock.
-        if (yPos == 0)
+        if (pos.y < 1)
             return 1;
-
-        /* BASIC TERRAIN PASS */
-
-        int terrainHeight = Mathf.FloorToInt(biome.terrainHeight * Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.terrainScale)) + biome.solidGroundHeight;
-        byte voxelValue = 0;
-
-        if (yPos == terrainHeight)
-            voxelValue = 3;
-        else if (yPos < terrainHeight && yPos > terrainHeight - 4)
-            voxelValue = 5;
-        else if (yPos > terrainHeight)
-            return 0;
+        else if (pos.y == VoxelData.ChunkHeight - 1)
+            return 3;
         else
-            voxelValue = 2;
-
-        /* SECOND PASS */
-
-        if (voxelValue == 2) {
-
-            foreach (Lode lode in biome.lodes) {
-
-                if (yPos > lode.minHeight && yPos < lode.maxHeight)
-                    if (Noise.Get3DPerlin(pos, lode.noiseOffset, lode.scale, lode.threshold))
-                        voxelValue = lode.blockID;
-
-            }
-
-        }
-
-        return voxelValue;
-
+            return 2;
 
     }
 
     void CreateNewChunk (int x, int z) {
 
-        chunks[x, z] = new Chunk(new ChunkCoord(x, z), this);
+        chunks[x, z] = new Chunk (new ChunkCoord(x, z), this);
         activeChunks.Add(new ChunkCoord(x, z));
 
     }
@@ -162,8 +117,7 @@ public class World : MonoBehaviour {
         if (coord.x > 0 && coord.x < VoxelData.WorldSizeInChunks - 1 && coord.z > 0 && coord.z < VoxelData.WorldSizeInChunks - 1)
             return true;
         else
-            return
-                false;
+            return false;
 
     }
 
@@ -173,18 +127,17 @@ public class World : MonoBehaviour {
             return true;
         else
             return false;
-
     }
 
 }
 
 [System.Serializable]
 public class BlockType {
-
+    
     public string blockName;
     public bool isSolid;
 
-    [Header("Texture Values")]
+    [Header ("Texture Values")]
     public int backFaceTexture;
     public int frontFaceTexture;
     public int topFaceTexture;
@@ -213,7 +166,7 @@ public class BlockType {
             default:
                 Debug.Log("Error in GetTextureID; invalid face index");
                 return 0;
-
+            
 
         }
 
