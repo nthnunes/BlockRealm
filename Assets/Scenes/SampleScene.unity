@@ -384,6 +384,14 @@ MonoBehaviour:
     bottomFaceTexture: 10
     leftFaceTexture: 10
     rightFaceTexture: 10
+  - blockName: Dirt
+    isSolid: 1
+    backFaceTexture: 1
+    frontFaceTexture: 1
+    topFaceTexture: 1
+    bottomFaceTexture: 1
+    leftFaceTexture: 1
+    rightFaceTexture: 1
 --- !u!4 &1408280035
 Transform:
   m_ObjectHideFlags: 0
