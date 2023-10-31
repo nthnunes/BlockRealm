@@ -355,6 +355,7 @@
 "Assets/Scripts/BiomeAttributes.cs"
 "Assets/Scripts/Chunk.cs"
 "Assets/Scripts/Noise.cs"
+"Assets/Scripts/Player.cs"
 "Assets/Scripts/VoxelData.cs"
 "Assets/Scripts/World.cs"
 -langversion:9.0
